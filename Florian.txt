@@ -1,0 +1,19 @@
+Hi Mirza, 
+hope all is well. Apologies for the delay - I finally manage to generate a synthetic dataset from the data our labs collect from chemical reactions. The csv is attached below. In the file, you'll find five different columns 
+"product":  some identifier for the product to be formed. The identifier encodes some molecule of interest. Structures are secret and we won't need them for now, which is why I anonymized them with identifiers
+"catalyst name":  standardized name of the catalyst that was used in the reaction 
+"base name": standardized name of the base that was used in the reaction 
+"solvent name": standardized name of the solvent that was used in the reaction
+"area": readout of the experiment. The peak area is a proxy for the yield of the reaction, i.e., how much product was synthesized. It's a number in [0, 100] where 0 indicates that no product was formed and 100 indicates all of the theoretically possible amount was formed. 
+The areas are sampled from a hierarchical probabilistic model which I fitted on experimental data. You'll find that we have an area sample for each combination of product x catalyst x base x solvent. This situation reflects a scenario where we have the predictions of some trained model for a given reaction. We will encounter such situations when we want to use predictive models to guide screen designs. 
+
+
+As a first task, I suggest that you familiarize yourself with the dataset. Have a look at what's in there and how the areas are influenced by certain choices of reagents and products. We could use our meeting on Thursday for a first discussion of your findings. 
+Second, we will need some sort of protocol which allows us to design screens. Given
+a product to be synthesized,
+predicted areas for each combination of reagents (=catalyst,base,solvent)
+and a desired screen layout (e.g., 12 catalysts x 4 bases x 2 solvents) 
+we want to find the catalysts, bases, and solvents which overall will produce hits with the highest areas across the plate. Realistic screen designs are (12 cats x 2 bases x 2 solvents = 48 combinations), (12 cats x 2 bases x 4 solvents = 96 combinations), (12 cats x 4 bases x 2 solvents = 96 combinations) and (6 cats x 4 solvents x 4 bases = 96 combinations). Could you please develop a protocol which helps us to find the most promising sets of catalyst, bases, and solvents? 
+ 
+Don't hesitate to each out with any questions. I'm looking forward to catching up on Thursday 
+ 

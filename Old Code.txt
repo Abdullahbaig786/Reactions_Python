@@ -1,0 +1,431 @@
+This is the code before doing Avg 1st then Elo rank:
+# %%
+import pandas as pd
+import seaborn as sns
+import numpy as np
+import matplotlib.pyplot as plt
+
+# %%
+df = pd.read_csv("synthetic_buchwalds.csv")
+
+# %%
+df.isnull().sum()
+
+# %%
+df.head()
+
+# %% [markdown]
+# 
+
+# %%
+df.info()
+
+# %%
+df.describe()
+
+# %%
+df.groupby('catalyst name')['area'].mean()
+
+# %%
+df.groupby('base name')['area'].mean()
+
+
+# %%
+df.groupby('solvent name')['area'].mean()
+
+# %%
+print("Products :", df["product"].nunique())
+print("Catalysts :", df["catalyst name"].nunique())
+print("Bases :", df["base name"].nunique())
+print("Solvents :", df["solvent name"].nunique())
+
+# %%
+plt.figure(figsize=(8,5))
+
+sns.histplot(df["area"], bins=50)
+plt.yscale("log")
+plt.title("Distribution of Reaction Areas")
+plt.show()
+
+# %%
+sns.barplot(data=df, y="area", x="catalyst name", width=0.5)
+
+# %%
+
+
+# %%
+catalyst_avg = (
+    df.groupby("catalyst name")["area"]
+    .quantile(1) #Needs Clearification
+    .sort_values(ascending=False)
+)
+
+catalyst_avg
+
+catalyst_avg
+
+# %%
+top10_catalysts = catalyst_avg.head(10)
+
+plt.figure(figsize=(10,6))
+
+sns.barplot(
+    x=top10_catalysts.values,
+    y=top10_catalysts.index
+)
+
+plt.title("Top 10 Catalysts")
+plt.xlabel("Average Area")
+plt.ylabel("Catalyst")
+
+plt.show()
+
+# %%
+worst10_catalysts = catalyst_avg.tail(10)
+
+plt.figure(figsize=(10,6))
+
+sns.barplot(
+    x=worst10_catalysts.values,
+    y=worst10_catalysts.index
+)
+
+plt.title("Worst Catalysts based on Mean")
+plt.xlabel("Average Area")
+
+plt.show()
+
+# %%
+base_avg = (
+    df.groupby("base name")["area"]
+    .mean()
+    .sort_values(ascending=False)
+)
+
+base_avg
+
+# %%
+plt.figure(figsize=(10,6))
+
+sns.barplot(
+    x=base_avg.values,
+    y=base_avg.index
+)
+
+plt.title("Average Area by Base")
+
+plt.show()
+
+# %%
+solvent_avg = (
+    df.groupby("solvent name")["area"]
+    .mean()
+    .sort_values(ascending=False)
+)
+
+solvent_avg
+
+# %%
+plt.figure(figsize=(10,6))
+
+sns.barplot(
+    x=solvent_avg.values,
+    y=solvent_avg.index
+)
+
+plt.title("Average Area by Solvent")
+
+plt.show()
+
+# %%
+product_avg = (
+    df.groupby("product")["area"]
+    .mean()
+    .sort_values(ascending=False)
+)
+
+product_avg
+
+# %%
+plt.figure(figsize=(15,10))
+
+sns.boxplot(
+    data=df,
+    x="product",
+    y="area"
+)
+
+plt.xticks(rotation=90)
+
+plt.show()
+
+# %%
+heatmap_data = pd.pivot_table(
+    df,
+    values="area",
+    index="catalyst name",
+    columns="base name",
+    aggfunc="mean"
+)
+
+plt.figure(figsize=(12,8))
+
+sns.heatmap(
+    heatmap_data,
+    cmap="viridis"
+)
+
+plt.title("Catalyst vs Base")
+
+plt.show()
+
+# %%
+heatmap_data = pd.pivot_table(
+    df,
+    values="area",
+    index="catalyst name",
+    columns="solvent name",
+    aggfunc="mean"
+)
+
+plt.figure(figsize=(12,8))
+
+sns.heatmap(
+    heatmap_data,
+    cmap="viridis"
+)
+
+plt.title("Catalyst vs Solvent")
+
+plt.show()
+
+# %%
+best_combinations = (
+    df.sort_values("area", ascending=False)
+    [["product",
+      "catalyst name",
+      "base name",
+      "solvent name",
+      "area"]]
+)
+
+best_combinations.head(10)
+
+# %%
+product_name = df["product"].iloc[0]
+
+product_df = df[df["product"] == product_name]
+
+# %%
+best_catalysts = (
+    product_df
+    .groupby("catalyst name")["area"]
+    .mean()
+    .sort_values(ascending=False)
+    .head(12)
+)
+
+best_catalysts
+
+# %%
+best_bases = (
+    product_df
+    .groupby("base name")["area"]
+    .mean()
+    .sort_values(ascending=False)
+    .head(2)
+)
+
+best_bases
+
+# %%
+best_solvents = (
+    product_df
+    .groupby("solvent name")["area"]
+    .mean()
+    .sort_values(ascending=False)
+    .head(2)
+)
+
+best_solvents
+
+# %%
+print("Recommended Catalysts:")
+print(best_catalysts.index.tolist())
+
+print("\nRecommended Bases:")
+print(best_bases.index.tolist())
+
+print("\nRecommended Solvents:")
+print(best_solvents.index.tolist())
+
+# %%
+# Select the area values for the product stored in product_name
+df.groupby("product").get_group(product_name)["area"].to_numpy()[0]
+
+# %%
+df["catalyst name"].unique()
+
+# %%
+        np.sort(df["catalyst name"].unique())
+
+# %%
+recommended_catalysts = sorted(best_catalysts.index.tolist())
+print(recommended_catalysts)
+
+# %%
+recommended_bases = sorted(best_bases.index.tolist())
+print(recommended_bases)
+
+# %%
+recommended_solvents = sorted(best_solvents.index.tolist())
+print(recommended_solvents)
+
+# %%
+#Find out which triplets hase the best reaction area with the different prodicts
+
+# %%
+df[
+    (df["catalyst name"] == recommended_catalysts[0])
+    & (df["solvent name"] == recommended_solvents[0])
+    & (df["base name"] == recommended_bases[0])
+]
+#This is the first triplet with the best reaction area for the product stored in product_name. You can repeat this process for other products by changing the value of product_name.
+
+# %%
+#Now i have to find out the best triplet for the other products. ( I will create a function that takes the product name as input and returns the best triplet for that poduct.)
+
+# %%
+from itertools import product #product() creates all possible combinations of items from multiple lists.
+
+triplets = []
+
+for catalyst, base, solvent in product(
+    recommended_catalysts,
+    recommended_bases,
+    recommended_solvents
+):
+    result = df[
+        (df["catalyst name"] == catalyst)
+        & (df["base name"] == base)
+        & (df["solvent name"] == solvent)
+    ]
+
+    if not result.empty:
+        triplets.append(
+            {
+                "catalyst": catalyst,
+                "base": base,
+                "solvent": solvent,
+                "area": result["area"].mean()
+            }
+        )
+
+triplets_df = (
+    pd.DataFrame(triplets)
+    .sort_values("area", ascending=False)
+)
+
+triplets_df
+
+# %%
+from itertools import product
+
+triplets = []
+
+for catalyst, base, solvent in product(
+    recommended_catalysts,
+    recommended_bases,
+    recommended_solvents
+):
+
+    result = df[
+        (df["catalyst name"] == catalyst)
+        & (df["base name"] == base)
+        & (df["solvent name"] == solvent)
+    ]
+
+    if not result.empty:
+        triplets.append(
+            {
+                "catalyst": catalyst,
+                "base": base,
+                "solvent": solvent,
+                "area": result["area"].mean()
+            }
+        )
+
+triplets_df = pd.DataFrame(triplets)
+
+triplets_df.head()
+
+# %%
+from itertools import combinations
+
+elo = {
+    idx: 1500
+    for idx in triplets_df.index
+}
+
+K = 32
+
+
+# %%
+for a, b in combinations(triplets_df.index, 2):
+
+    area_a = triplets_df.loc[a, "area"]
+    area_b = triplets_df.loc[b, "area"]
+
+    rating_a = elo[a]
+    rating_b = elo[b]
+
+    expected_a = 1 / (1 + 10 ** ((rating_b - rating_a) / 400))
+    expected_b = 1 / (1 + 10 ** ((rating_a - rating_b) / 400))
+
+    if area_a > area_b:
+        score_a = 1
+        score_b = 0
+    elif area_b > area_a:
+        score_a = 0
+        score_b = 1
+    else:
+        score_a = 0.5
+        score_b = 0.5
+
+    elo[a] += K * (score_a - expected_a)
+    elo[b] += K * (score_b - expected_b)
+
+
+# %%
+triplets_df["elo"] = triplets_df.index.map(elo)
+
+triplets_df.head()
+
+# %%
+triplets_df = triplets_df.sort_values(
+    "elo",
+    ascending=False
+)
+
+triplets_df
+
+# %%
+# %%
+import subprocess
+import time
+
+# Wait 1 second to make sure VS Code Auto Save finishes writing your file to disk
+time.sleep(1)
+
+commit_message = "Update Buchwald reaction analysis and Elo rankings"
+cmd = f'git add . && git commit -m "{commit_message}" && git push'
+
+result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+print("OUTPUT:\n", result.stdout)
+if result.stderr:
+    print("STATUS/ERRORS:\n", result.stderr)
+
+# %%
+
+
+
